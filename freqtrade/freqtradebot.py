@@ -16,7 +16,7 @@ from freqtrade.configuration import validate_config_consistency
 from freqtrade.data.converter import order_book_to_dataframe
 from freqtrade.data.dataprovider import DataProvider
 from freqtrade.edge import Edge
-from freqtrade.enums import RPCMessageType, SellType, State, TradingMode
+from freqtrade.enums import Collateral, RPCMessageType, SellType, State, TradingMode
 from freqtrade.exceptions import (DependencyException, ExchangeError, InsufficientFundsError,
                                   InvalidOrderException, PricingError)
 from freqtrade.exchange import timeframe_to_minutes, timeframe_to_seconds
@@ -41,6 +41,9 @@ class FreqtradeBot(LoggingMixin):
     Freqtrade is the main class of the bot.
     This is from here the bot start its logic.
     """
+
+    collateral: Optional[Collateral] = None
+    trading_mode: TradingMode = TradingMode.SPOT
 
     def __init__(self, config: Dict[str, Any]) -> None:
         """
@@ -108,13 +111,18 @@ class FreqtradeBot(LoggingMixin):
         if self.config.get("trading_mode"):
             self.trading_mode = TradingMode(self.config.get("trading_mode"))
 
+        if self.config.get('collateral'):
+            self.collateral = Collateral(self.config.get('collateral'))
+
         # Start calculating maintenance margin if on cross margin
         # TODO: Add margin_mode to freqtrade.configuration?
-        if self.config.get('collateral') == "cross":
+        if self.collateral == Collateral.CROSS:
+
             self.maintenance_margin = MaintenanceMargin(
                 exchange_name=self.exchange.name,
                 trading_mode=self.trading_mode)
-            self.maintenance_margin.run
+
+            self.maintenance_margin.run()
 
     def notify_status(self, msg: str) -> None:
         """
@@ -436,7 +444,7 @@ class FreqtradeBot(LoggingMixin):
         # running get_signal on historical data fetched
         (signal, enter_tag) = self.strategy.get_entry_signal(
             pair, self.strategy.timeframe, analyzed_df
-            )
+        )
 
         if signal:
             stake_amount = self.wallets.get_trade_stake_amount(pair, self.edge)
@@ -538,7 +546,7 @@ class FreqtradeBot(LoggingMixin):
                 pair=pair, order_type=order_type, amount=amount, rate=enter_limit_requested,
                 time_in_force=time_in_force, current_time=datetime.now(timezone.utc),
                 side='long'
-                ):
+        ):
             logger.info(f"User requested abortion of buying {pair}")
             return False
         amount = self.exchange.amount_to_precision(pair, amount)
@@ -606,6 +614,9 @@ class FreqtradeBot(LoggingMixin):
         # Update fees if order is closed
         if order_status == 'closed':
             self.update_trade_state(trade, order_id, order)
+
+        if self.collateral == Collateral.CROSS:
+            self.maintenance_margin.add_new_trade(trade)
 
         Trade.query.session.add(trade)
         Trade.commit()
@@ -1190,8 +1201,17 @@ class FreqtradeBot(LoggingMixin):
                                 reason='Auto lock')
 
         self._notify_exit(trade, order_type)
+        self._remove_maintenance_trade(trade)
 
         return True
+
+    def _remove_maintenance_trade(self, trade: Trade):
+        """
+            Removes a trade from the maintenance margin object
+            :param trade: The trade to remove from the maintenance margin
+        """
+        if self.collateral == Collateral.CROSS:
+            self.maintenance_margin.remove_trade(trade)
 
     def _notify_exit(self, trade: Trade, order_type: str, fill: bool = False) -> None:
         """
