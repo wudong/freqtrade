@@ -1,6 +1,7 @@
 """ FTX exchange subclass """
 import logging
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import ccxt
 
@@ -153,3 +154,25 @@ class Ftx(Exchange):
         if order['type'] == 'stop':
             return safe_value_fallback2(order, order, 'id_stop', 'id')
         return order['id']
+
+    def _get_funding_rate(self, pair: str, when: datetime) -> Optional[float]:
+        """FTX doesn't use this"""
+        return None
+
+    def _get_funding_fee(
+        self,
+        pair: str,
+        contract_size: float,
+        mark_price: float,
+        premium_index: Optional[float],
+        # index_price: float,
+        # interest_rate: float)
+    ) -> float:
+        """
+            Calculates a single funding fee
+            Always paid in USD on FTX  # TODO: How do we account for this
+            : param contract_size: The amount/quanity
+            : param mark_price: The price of the asset that the contract is based off of
+            : param funding_rate: Must be None on ftx
+        """
+        return (contract_size * mark_price) / 24
