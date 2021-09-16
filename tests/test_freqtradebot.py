@@ -6,10 +6,10 @@ import time
 from copy import deepcopy
 from math import isclose
 from unittest.mock import ANY, MagicMock, PropertyMock
-import time_machine
 
 import arrow
 import pytest
+import time_machine
 
 from freqtrade.constants import CANCEL_REASON, MATH_CLOSE_PREC, UNLIMITED_STAKE_AMOUNT
 from freqtrade.enums import RPCMessageType, RunMode, SellType, State, TradingMode
