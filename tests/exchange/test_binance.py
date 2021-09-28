@@ -350,6 +350,14 @@ def test__get_funding_fee():
     return
 
 
+def test_get_funding_rate():
+    return
+
+
+def test__get_funding_fee():
+    return
+
+
 @pytest.mark.asyncio
 async def test__async_get_historic_ohlcv_binance(default_conf, mocker, caplog):
     ohlcv = [

@@ -1633,6 +1633,37 @@ class Exchange:
         except ccxt.BaseError as e:
             raise OperationalException(e) from e
 
+    def _get_premium_index(self, pair: str, date: datetime) -> float:
+        raise OperationalException(f'_get_premium_index has not been implemented on {self.name}')
+
+    def _get_mark_price(self, pair: str, date: datetime) -> float:
+        raise OperationalException(f'_get_mark_price has not been implemented on {self.name}')
+
+    def _get_funding_rate(self, pair: str, when: datetime):
+        """
+            Get's the funding_rate for a pair at a specific date and time in the past
+        """
+        # TODO-lev: implement
+        raise OperationalException(f"get_funding_rate has not been implemented for {self.name}")
+
+    def _get_funding_fee(
+        self,
+        pair: str,
+        contract_size: float,
+        mark_price: float,
+        premium_index: Optional[float],
+        # index_price: float,
+        # interest_rate: float)
+    ) -> float:
+        """
+            Calculates a single funding fee
+            :param contract_size: The amount/quanity
+            :param mark_price: The price of the asset that the contract is based off of
+            :param funding_rate: the interest rate and the premium
+                - premium: varies by price difference between the perpetual contract and mark price
+        """
+        raise OperationalException(f"Funding fee has not been implemented for {self.name}")
+
     def fill_leverage_brackets(self):
         """
             # TODO-lev: Should maybe be renamed, leverage_brackets might not be accurate for kraken
@@ -1718,13 +1749,17 @@ class Exchange:
 
         return results
 
-    @retrier
-    def set_margin_mode(self, pair: str, collateral: Collateral, params: dict = {}):
-        '''
+
+<< << << < HEAD
+
+
+@retrier
+ def set_margin_mode(self, pair: str, collateral: Collateral, params: dict = {}):
+      '''
             Set's the margin mode on the exchange to cross or isolated for a specific pair
             :param symbol: base/quote currency pair (e.g. "ADA/USDT")
         '''
-        if self._config['dry_run'] or not self.exchange_has("setMarginMode"):
+       if self._config['dry_run'] or not self.exchange_has("setMarginMode"):
             # Some exchanges only support one collateral type
             return
 
@@ -1738,14 +1773,16 @@ class Exchange:
         except ccxt.BaseError as e:
             raise OperationalException(e) from e
 
-    def calculate_funding_fees(
-        self,
-        pair: str,
-        amount: float,
-        open_date: datetime,
-        close_date: datetime
-    ) -> float:
-        """
+== == == =
+>>>>>> > d7936be25a0948a853c19653f30805094616c9b7
+def calculate_funding_fees(
+     self,
+     pair: str,
+     amount: float,
+     open_date: datetime,
+     close_date: datetime
+     ) -> float:
+     """
             calculates the sum of all funding fees that occurred for a pair during a futures trade
             :param pair: The quote/base pair of the trade
             :param amount: The quantity of the trade
@@ -1753,8 +1790,8 @@ class Exchange:
             :param close_date: The date and time that the trade ended
         """
 
-        fees: float = 0
-        for date in self._get_funding_fee_dates(open_date, close_date):
+      fees: float = 0
+       for date in self._get_funding_fee_dates(open_date, close_date):
             premium_index = self._get_premium_index(pair, date)
             mark_price = self._get_mark_price(pair, date)
             fees += self._get_funding_fee(

@@ -1,16 +1,18 @@
 """ FTX exchange subclass """
-import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
-
-import ccxt
-
-from freqtrade.enums import Collateral, TradingMode
+from freqtrade.misc import safe_value_fallback2
+from freqtrade.exchange.common import API_FETCH_ORDER_RETRY_COUNT, retrier
+from freqtrade.exchange import Exchange
 from freqtrade.exceptions import (DDosProtection, InsufficientFundsError, InvalidOrderException,
                                   OperationalException, TemporaryError)
-from freqtrade.exchange import Exchange
-from freqtrade.exchange.common import API_FETCH_ORDER_RETRY_COUNT, retrier
-from freqtrade.misc import safe_value_fallback2
+from freqtrade.enums import Collateral, TradingMode
+import ccxt
+from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+import logging
+from datetime import datetime
+<< << << < HEAD
+== == == =
+>>>>>> > d7936be25a0948a853c19653f30805094616c9b7
 
 
 logger = logging.getLogger(__name__)
