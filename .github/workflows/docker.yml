@@ -26,6 +26,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: wudong/fqtrade:latest
-          cache-from: type=registry,ref=wudong/fqtrade:buildcache
-          cache-to: type=registry,ref=wudong/fqtrade:buildcache,mode=max
+          tags: ghcr.io/{{ github.repository }}:latest
+          cache-from: type=registry,ref={{ github.repository }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/{{ github.repository }}:buildcache,mode=max	  
