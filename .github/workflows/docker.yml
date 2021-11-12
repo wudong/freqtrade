@@ -29,4 +29,3 @@ jobs:
           tags: wudong/fqtrade:latest
           cache-from: type=registry,ref=wudong/fqtrade:buildcache
           cache-to: type=registry,ref=wudong/fqtrade:buildcache,mode=max
-	  
